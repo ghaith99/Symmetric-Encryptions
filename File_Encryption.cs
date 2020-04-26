@@ -46,6 +46,13 @@ public class Program
 	public static void Main()
 	{
 		MapEncryptionEncodingEnums();
+		String fileToEncrypt = @"C:\Users\pc\Desktop\Dlvr.txt";
+		String varEncryptionKey = null;
+		String encryptedText = "";
+		String salt = null;
+		String initializationVector = null;
+		EncryptFromFile(fileToEncrypt, varEncryptionKey, ref encryptedText, ref salt, ref initializationVector, encoding: 2, encryptionAlgorithm: 0, encryptionKey: "12345", blockSize: 128, keySize: 256, cipherMode: 0, paddingMode: 1, useSalt: false, useIv: false);
+		Console.WriteLine(encryptedText);
 	}
 
 	public static void EncryptFromFile(String fileToEncrypt, String varEncryptionKey, ref String encryptedText, ref String salt, ref String initializationVector, int encoding, int encryptionAlgorithm, string encryptionKey, int blockSize, int keySize, int cipherMode, int paddingMode, bool useSalt, bool useIv)
