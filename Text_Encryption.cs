@@ -48,7 +48,6 @@ public class Program
 	public static void Main()
 	{
 		MapEncryptionEncodingEnums();
-		
 	}
 	
 	public static void MapEncryptionEncodingEnums()
