@@ -1,57 +1,76 @@
+using System;
+using System.Text;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.IO;
 
-
-
-String fileToEncrypt="C:\Users\pc\Desktop\Dlvr.txt";
-String varEncryptionKey=null;
-String encryptedText="";
-String salt=null;
-String initializationVector=null;
-EncryptFromFile( fileToEncrypt,varEncryptionKey,ref encryptedText,ref salt,ref initializationVector,encoding: 2,encryptionAlgorithm: 0,encryptionKey:"12345",blockSize:128,keySize:256,cipherMode:0,paddingMode:1,useSalt: false,useIv: false);
-_Variables["encryptedtext"] = (String)encryptedText;
-
-
-String iParam0= "";
-String iParam1="C:\Users\pc\Desktop\decryptedFile.txt";
-String iParam2=null;
-String iParam3=null;
-String iParam4=null;
-String decryptedfile="String.CreateString(_Variables["decryptedfile"]);"
-DecryptToFile( iParam0,iParam1,iParam2,iParam3,iParam4,ref oParam0,2,0,true,@"e34b5a0d67d948b9e300208aa47d9770",2,128,256,0,1,false,false);
-_Variables["decryptedfile"] = (String)oParam0;
-
-
-
-public static void EncryptFromFile(Variant fileToEncrypt, Variant varEncryptionKey, ref Variant encryptedText, ref Variant salt, ref Variant initializationVector, int encoding, int encryptionAlgorithm, string encryptionKey, int blockSize, int keySize, int cipherMode, int paddingMode, bool useSalt, bool useIv)
+public class Program
 {
-	FileVariant fileVariant = (FileVariant)ActionRuntimeBase.CheckType(fileToEncrypt, "File to Encrypt", false, typeof(FileVariant));
-	TextVariant textVariant = encryptionKeyDirectly ? null : ((TextVariant)ActionRuntimeBase.CheckType(varEncryptionKey, "Encryption Key", false, typeof(TextVariant)));
-	Encoding encoding2 = EncodingMapping[(EncryptionEncoding)encoding];
-	CipherMode cipherMode2 = CipherModeMapping[(AlgorithmCipherMode)cipherMode];
-	PaddingMode paddingMode2 = PaddingModeMapping[(AlgorithmPaddingMode)paddingMode];
-	try
+	
+	public enum EncryptionEncoding
 	{
-		if (!fileVariant.Exists)
-		{
-			throw new ActionException(1, string.Format("File {0} does not exist", fileVariant), null);
-		}
-		byte[] dataBytes = ReadFileBytes(fileVariant.FullName.ToString(CultureInfo.InvariantCulture), encoding2);
-		string key = encryptionKeyDirectly ? ActionRuntimeBase.SetText(encryptionKey) : textVariant.ToString(CultureInfo.InvariantCulture);
-		System.ValueTuple<string, string, string> valueTuple = EncryptDataImp(encoding2, (SymmetricAlgorithmForAction)encryptionAlgorithm, blockSize, keySize, cipherMode2, paddingMode2, dataBytes, key, useSalt, useIv);
-		if (encryptedText != null)
-		{
-			encryptedText = valueTuple.Item1;
-		}
-		if (salt != null)
-		{
-			salt = valueTuple.Item2;
-		}
-		if (initializationVector != null)
-		{
-			initializationVector = valueTuple.Item3;
-		}
+		Default,
+		ANSI,
+		Unicode,
+		BigEndianUnicode,
+		UTF8
 	}
-	catch (Exception ex)
+
+	public enum AlgorithmCipherMode
 	{
-		Console.WriteLine(ex);
+		CBC,
+		ECB,
+		CFB
 	}
+
+	public enum AlgorithmPaddingMode
+	{
+		None,
+		PKCS7,
+		Zeros,
+		ANSIX923,
+		ISO10126
+	}
+
+	public enum SymmetricAlgorithmForAction
+	{
+		AES,
+		DES,
+		RC2,
+		Rijndael,
+		TripleDES
+	}
+
+	public static Dictionary<EncryptionEncoding, Encoding> EncodingMapping;
+	public static Dictionary<AlgorithmCipherMode, CipherMode> CipherModeMapping;
+	public static Dictionary<AlgorithmPaddingMode, PaddingMode> PaddingModeMapping;
+	
+	public static void Main()
+	{
+		MapEncryptionEncodingEnums();
+	}
+	
+	public static void MapEncryptionEncodingEnums()
+	{
+		//mapping to enum values as the Encoding are not enums (ex.Encoding.Default is a function)
+		EncodingMapping = new Dictionary<EncryptionEncoding, Encoding>();
+		EncodingMapping[EncryptionEncoding.Default] = Encoding.Default;
+		EncodingMapping[EncryptionEncoding.ANSI] = Encoding.ASCII;
+		EncodingMapping[EncryptionEncoding.Unicode] = Encoding.Unicode;
+		EncodingMapping[EncryptionEncoding.BigEndianUnicode] = Encoding.BigEndianUnicode;
+		EncodingMapping[EncryptionEncoding.UTF8] = Encoding.UTF8;
+		//Mapping enums from 0 based counting to system 1 based counting (could have been replaced with +1 everywhere!!)
+		CipherModeMapping = new Dictionary<AlgorithmCipherMode, CipherMode>();
+		CipherModeMapping[AlgorithmCipherMode.CBC] = CipherMode.CBC;
+		CipherModeMapping[AlgorithmCipherMode.ECB] = CipherMode.ECB;
+		CipherModeMapping[AlgorithmCipherMode.CFB] = CipherMode.CFB;
+		//Mapping enums from 0 based counting to system 1 based counting (could have been replaced with +1 everywhere!!)
+		PaddingModeMapping = new Dictionary<AlgorithmPaddingMode, PaddingMode>();
+		PaddingModeMapping[AlgorithmPaddingMode.None] = PaddingMode.None;
+		PaddingModeMapping[AlgorithmPaddingMode.PKCS7] = PaddingMode.PKCS7;
+		PaddingModeMapping[AlgorithmPaddingMode.Zeros] = PaddingMode.Zeros;
+		PaddingModeMapping[AlgorithmPaddingMode.ANSIX923] = PaddingMode.ANSIX923;
+		PaddingModeMapping[AlgorithmPaddingMode.ISO10126] = PaddingMode.ISO10126;
+	}
+
 }
