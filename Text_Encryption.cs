@@ -64,9 +64,9 @@ public class Program
 		
 	
 		//AES Encrypt
-		  EncryptText(textToEncrypt, ref encryptedText, ref salt, ref initializationVector, encoding: 2,
+		  EncryptText(textToEncrypt, ref encryptedText, ref salt, ref initializationVector, encoding: (int)EncryptionEncoding.Unicode,
                     encryptionAlgorithm: (int)SymmetricAlgorithmForAction.AES, 
-                    encryptionKey: "12345", blockSize: 128, keySize: 256, cipherMode: 0, paddingMode: 1, useSalt: false, useIv: false);
+                    encryptionKey: "12345", blockSize: 128, keySize: 256, cipherMode:(int)AlgorithmCipherMode.CBC, paddingMode: (int)AlgorithmPaddingMode.PKCS7, useSalt: false, useIv: false);
       
 		if (encryptedText == null)
 			Console.WriteLine("null");
@@ -78,10 +78,11 @@ public class Program
 		String salt2=null;
 		String initializationVector2=null;
 		String decryptedText= "";
+		
 		DecryptText(textToDecrypt,salt2,initializationVector2,
 					ref decryptedText,encoding: 2,
 					encryptionAlgorithm: (int)SymmetricAlgorithmForAction.AES,encryptionKey:"12345",
-					 blockSize: 128, keySize: 256, cipherMode: 0, paddingMode: 1, useSalt: false, useIv: false);
+					 blockSize: 128, keySize: 256, cipherMode:(int)AlgorithmCipherMode.CBC, paddingMode: (int)AlgorithmPaddingMode.PKCS7, useSalt: false, useIv: false);
 		Console.WriteLine(decryptedText);
 	}
 public static void DESExample(){

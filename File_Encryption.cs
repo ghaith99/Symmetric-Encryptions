@@ -47,15 +47,25 @@ public class Program
 	{
 		MapEncryptionEncodingEnums();
 		String fileToEncrypt = @"C:\Users\pc\Desktop\Dlvr.txt";
-		String varEncryptionKey = null;
 		String encryptedText = "";
 		String salt = null;
 		String initializationVector = null;
-		EncryptFromFile(fileToEncrypt, varEncryptionKey, ref encryptedText, ref salt, ref initializationVector, encoding: 2, encryptionAlgorithm: 0, encryptionKey: "12345", blockSize: 128, keySize: 256, cipherMode: 0, paddingMode: 1, useSalt: false, useIv: false);
+		//Encrypt file
+		EncryptFromFile(fileToEncrypt, ref encryptedText, ref salt, ref initializationVector, encoding: (int)EncryptionEncoding.UTF8, encryptionAlgorithm: 0, encryptionKey: "12345", blockSize: 128, keySize: 256, cipherMode:(int)AlgorithmCipherMode.CBC, paddingMode: (int)AlgorithmPaddingMode.PKCS7, useSalt: false, useIv: false);
 		Console.WriteLine(encryptedText);
+
+		//Decrypt file 
+		String textToDecrypt = encryptedText; // Change this
+		String decryptToFile = @"C:\Users\pc\Desktop\decryptedFile.txt";
+		String salt2 = null;
+		String initializationVector2 = null;
+		String decryptedFile = ""; //returns the decrypted file path back (incase file exist checking)
+		DecryptToFile(textToDecrypt, decryptToFile, salt2, initializationVector2, ref decryptedFile, encoding: (int)EncryptionEncoding.UTF8, encryptionAlgorithm: (int)SymmetricAlgorithmForAction.AES, encryptionKey: "12345", blockSize: 128, keySize: 256, cipherMode:(int)AlgorithmCipherMode.CBC, paddingMode: (int)AlgorithmPaddingMode.PKCS7, useSalt: false, useIv: false);
+		Console.WriteLine("File Decrypted: ", (String)decryptedFile);
 	}
 
-	public static void EncryptFromFile(String fileToEncrypt, String varEncryptionKey, ref String encryptedText, ref String salt, ref String initializationVector, int encoding, int encryptionAlgorithm, string encryptionKey, int blockSize, int keySize, int cipherMode, int paddingMode, bool useSalt, bool useIv)
+	//Encryption Methods Start 
+	public static void EncryptFromFile(String fileToEncrypt, ref String encryptedText, ref String salt, ref String initializationVector, int encoding, int encryptionAlgorithm, string encryptionKey, int blockSize, int keySize, int cipherMode, int paddingMode, bool useSalt, bool useIv)
 	{
 		FileInfo fileVariant = new FileInfo(fileToEncrypt);
 		Encoding encoding2 = EncodingMapping[(EncryptionEncoding)encoding];
@@ -166,6 +176,102 @@ public class Program
 		return new System.ValueTuple<string, string, string>(Convert.ToBase64String(inArray), Convert.ToBase64String(array), Convert.ToBase64String(array2));
 	}
 
+	//Decryption Methods
+	public static void DecryptToFile(String textToDecrypt, String decryptToFile, String salt, String initializationVector, ref String decryptedFile, int encoding, int encryptionAlgorithm, string encryptionKey, int blockSize, int keySize, int cipherMode, int paddingMode, bool useSalt, bool useIv)
+	{
+		String textVariant = textToDecrypt;
+		FileInfo fileVariant = new FileInfo(decryptToFile);
+		String v = useSalt ? salt : null;
+		String v2 = useIv ? initializationVector : null;
+		Encoding encoding2 = EncodingMapping[(EncryptionEncoding)encoding];
+		CipherMode cipherMode2 = CipherModeMapping[(AlgorithmCipherMode)cipherMode];
+		PaddingMode paddingMode2 = PaddingModeMapping[(AlgorithmPaddingMode)paddingMode];
+		try
+		{
+			if (!fileVariant.Exists)
+			{
+				byte[] dataBytes = Convert.FromBase64String(textVariant);
+				string key = encryptionKey;
+				string value = DecryptDataImp(encoding2, (SymmetricAlgorithmForAction)encryptionAlgorithm, blockSize, keySize, cipherMode2, paddingMode2, dataBytes, key, useSalt, v, useIv, v2);
+
+				fileVariant = new FileInfo(Path.Combine(fileVariant.Directory.ToString(), fileVariant.Name));
+				
+                using (StreamWriter streamWriter = new StreamWriter(fileVariant.FullName, false, encoding2))
+				{
+					streamWriter.Write(value);
+				}
+
+				if (decryptedFile != null)
+				{
+					decryptedFile = fileVariant.ToString();
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine("Failed to decrypt file: ", ex);
+		}
+	}
+
+	private static string DecryptDataImp(Encoding encoding, SymmetricAlgorithmForAction encryptionAlgorithm, int blockSize, int keySize, CipherMode cipherMode, PaddingMode paddingMode, byte[] dataBytes, string key, bool useSalt, string salt, bool useIv, string iv)
+	{
+		string result;
+		using (SymmetricAlgorithm symmetricAlgorithm = GetSymmetricAlgorithm(encryptionAlgorithm))
+		{
+			symmetricAlgorithm.KeySize = keySize;
+			symmetricAlgorithm.BlockSize = blockSize;
+			symmetricAlgorithm.Mode = cipherMode;
+			symmetricAlgorithm.Padding = paddingMode;
+			int num = symmetricAlgorithm.KeySize / 8;
+			byte[] bytes;
+			if (!useSalt)
+			{
+				bytes = encoding.GetBytes(key);
+			}
+			else
+			{
+				byte[] salt2 = Convert.FromBase64String(salt);
+				using (Rfc2898DeriveBytes rfc2898DeriveBytes = new Rfc2898DeriveBytes(key, salt2, 1000))
+				{
+					bytes = rfc2898DeriveBytes.GetBytes(num);
+				}
+			}
+
+			if (bytes.Length < num)
+			{
+				int num2 = symmetricAlgorithm.LegalKeySizes[0].MinSize / 8;
+				if (encryptionAlgorithm != SymmetricAlgorithmForAction.TripleDES)
+				{
+					Array.Resize<byte>(ref bytes, num);
+				}
+				else if (bytes.Length < num2)
+				{
+					Array.Resize<byte>(ref bytes, num2);
+				}
+			}
+
+			symmetricAlgorithm.Key = bytes;
+			byte[] iv2 = useIv ? Convert.FromBase64String(iv) : new byte[symmetricAlgorithm.BlockSize / 8];
+			symmetricAlgorithm.IV = iv2;
+			using (ICryptoTransform cryptoTransform = symmetricAlgorithm.CreateDecryptor())
+			{
+				using (MemoryStream memoryStream = new MemoryStream(dataBytes))
+				{
+					using (CryptoStream cryptoStream = new CryptoStream(memoryStream, cryptoTransform, CryptoStreamMode.Read))
+					{
+						using (StreamReader streamReader = new StreamReader(cryptoStream, encoding))
+						{
+							result = streamReader.ReadToEnd();
+						}
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	//Helper Functions
 	private static SymmetricAlgorithm GetSymmetricAlgorithm(SymmetricAlgorithmForAction symmetricAlgorithm)
 	{
 		switch (symmetricAlgorithm)
