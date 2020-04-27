@@ -17,7 +17,7 @@ public class Program
 		
         String fileToHash=@"C:\Users\pc\Desktop\Dlvr.txt";
         String hashedText= "";
-        HashFile( fileToHash,ref hashedText,hashAlgorithm: (int)HashAlgorithmForAction.MD5, encoding: (int)EncryptionEncoding.Unicode);
+        HashFile( fileToHash,ref hashedText,hashAlgorithm: (int)HashAlgorithmForAction.SHA512, encoding: (int)EncryptionEncoding.Unicode);
 
 		Console.WriteLine(hashedText);	
 	}
