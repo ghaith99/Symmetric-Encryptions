@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
@@ -14,15 +15,15 @@ public class Program
 	{
         MapEncryptionEncodingEnums();
 		
-        String fileToHash=new TextString(@"C:\Users\pc\Desktop\Dlvr.txt");
+        String fileToHash=@"C:\Users\pc\Desktop\Dlvr.txt";
         String hashedText= "";
-        HashFile( fileToHash,ref hashedText,hashAlgorithm: (int)HashAlgorithmForAction.MD5, encoding:EncryptionEncoding.Unicode);
+        HashFile( fileToHash,ref hashedText,hashAlgorithm: (int)HashAlgorithmForAction.MD5, encoding: (int)EncryptionEncoding.Unicode);
 
 		Console.WriteLine(hashedText);	
 	}
 
 
-	public static void HashFile(Variant fileToHash, ref Variant hashedText, int hashAlgorithm, int encoding)
+	public static void HashFile(String fileToHash, ref String hashedText, int hashAlgorithm, int encoding)
 		{
             FileInfo fileVariant = new FileInfo(fileToHash);
 
@@ -34,7 +35,7 @@ public class Program
                     return;
 				}
 				Encoding encoding2 = EncodingMapping[(EncryptionEncoding)encoding];
-				byte[] dataBytes = ReadFileBytes(fileVariant.FullName.ToString(CultureInfo.InvariantCulture), encoding2);
+				byte[] dataBytes = ReadFileBytes(fileVariant.FullName, encoding2);
 				byte[] inArray = HashDataImp((HashAlgorithmForAction)hashAlgorithm, dataBytes);
 				if (hashedText != null)
 				{
@@ -47,6 +48,16 @@ public class Program
 			}
 		}
 
+    private static byte[] ReadFileBytes(string fileName, Encoding encoding)
+		{
+			byte[] bytes;
+			using (StreamReader streamReader = new StreamReader(File.OpenRead(fileName), encoding))
+			{
+				string s = streamReader.ReadToEnd();
+				bytes = encoding.GetBytes(s);
+			}
+			return bytes;
+		}
 	private static byte[] HashDataImp(HashAlgorithmForAction hashAlgorithm, byte[] dataBytes)
 		{
 			byte[] result;
