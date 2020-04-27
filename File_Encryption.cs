@@ -51,17 +51,17 @@ public class Program
 		String salt = null;
 		String initializationVector = null;
 		//Encrypt file
-		EncryptFromFile(fileToEncrypt, ref encryptedText, ref salt, ref initializationVector, encoding: (int)EncryptionEncoding.UTF8, encryptionAlgorithm: 0, encryptionKey: "12345", blockSize: 128, keySize: 256, cipherMode:(int)AlgorithmCipherMode.CBC, paddingMode: (int)AlgorithmPaddingMode.PKCS7, useSalt: false, useIv: false);
+		EncryptFromFile(fileToEncrypt, ref encryptedText, ref salt, ref initializationVector, encoding: (int)EncryptionEncoding.UTF8, encryptionAlgorithm: (int)SymmetricAlgorithmForAction.AES, encryptionKey: "12345", blockSize: 128, keySize: 256, cipherMode:(int)AlgorithmCipherMode.CBC, paddingMode: (int)AlgorithmPaddingMode.PKCS7, useSalt: false, useIv: false);
 		Console.WriteLine(encryptedText);
 
 		//Decrypt file 
 		String textToDecrypt = encryptedText; // Change this
 		String decryptToFile = @"C:\Users\pc\Desktop\decryptedFile.txt";
-		String salt2 = null;
+		String salt2 = salt;
 		String initializationVector2 = null;
 		String decryptedFile = ""; //returns the decrypted file path back (incase file exist checking)
 		DecryptToFile(textToDecrypt, decryptToFile, salt2, initializationVector2, ref decryptedFile, encoding: (int)EncryptionEncoding.UTF8, encryptionAlgorithm: (int)SymmetricAlgorithmForAction.AES, encryptionKey: "12345", blockSize: 128, keySize: 256, cipherMode:(int)AlgorithmCipherMode.CBC, paddingMode: (int)AlgorithmPaddingMode.PKCS7, useSalt: false, useIv: false);
-		Console.WriteLine("File Decrypted: ", (String)decryptedFile);
+		Console.WriteLine(decryptedFile);
 	}
 
 	//Encryption Methods Start 
@@ -186,6 +186,7 @@ public class Program
 		Encoding encoding2 = EncodingMapping[(EncryptionEncoding)encoding];
 		CipherMode cipherMode2 = CipherModeMapping[(AlgorithmCipherMode)cipherMode];
 		PaddingMode paddingMode2 = PaddingModeMapping[(AlgorithmPaddingMode)paddingMode];
+
 		try
 		{
 			if (!fileVariant.Exists)
@@ -200,16 +201,14 @@ public class Program
 				{
 					streamWriter.Write(value);
 				}
+                
+                decryptedFile = fileVariant.ToString();
 
-				if (decryptedFile != null)
-				{
-					decryptedFile = fileVariant.ToString();
-				}
 			}
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine("Failed to decrypt file: ", ex);
+			Console.WriteLine(ex);
 		}
 	}
 
