@@ -30,48 +30,27 @@ public class Program
 	public static void Main()
 	{
 		MapEncryptionEncodingEnums();
-		
-        
-        
-String iParam0= @"C:\Users\pc\Desktop\Dlvr.txt";
-String iParam1=null;
-String oParam0="";
-HashFileWithKey( iParam0,iParam1,ref oParam0,0,2,true,@"e34b5a0d67d948b9e300208aa47d9770");
-
+		String fileToHash = @"C:\Users\pc\Desktop\Dlvr.txt";
+		String hashedText = "";
+		String hashKey = @"123456";
+		HashFileWithKey(fileToHash, ref hashedText, (int)KeyedHashAlgorithmForAction.HMACSHA512, (int)EncryptionEncoding.UTF8, hashKey);
 		Console.WriteLine(hashedText);
 	}
 
-public static void HashFileWithKey(String fileToHash, ref String hashedText, int keyedHashAlgorithm, int encoding, string hashKey)
-		{
-            FileInfo fileVariant = new FileInfo(fileToHash);
-			try
-			{
-				if (!fileVariant.Exists)
-				{
-					throw new ActionException(1, string.Format("File {0} does not exist", fileVariant), null);
-				}
-				Encoding encoding2 = EncodingMapping[(EncryptionEncoding)encoding];
-				byte[] dataBytes = ReadFileBytes(fileVariant.FullName, encoding2);
-				byte[] bytes = encoding2.GetBytes(hashKey);
-				byte[] inArray = HashDataWithKeyImp((KeyedHashAlgorithmForAction)keyedHashAlgorithm, dataBytes, bytes);
-				if (hashedText != null)
-				{
-					hashedText = new TextVariant(Convert.ToBase64String(inArray));
-				}
-			}
-			catch (Exception ex)
-			{
-                Console.WriteLine(ex);
-			}
-		}
-	public static void HashTextWithKey(String textToHash, ref String hashedText, int keyedHashAlgorithm, int encoding, string hashKey)
+	public static void HashFileWithKey(String fileToHash, ref String hashedText, int keyedHashAlgorithm, int encoding, string hashKey)
 	{
+		FileInfo fileVariant = new FileInfo(fileToHash);
 		try
 		{
+			if (!fileVariant.Exists)
+			{
+				Console.WriteLine(string.Format("File {0} does not exist", fileVariant));
+			}
+
 			Encoding encoding2 = EncodingMapping[(EncryptionEncoding)encoding];
-			byte[] bytes = encoding2.GetBytes(textToHash);
-			byte[] bytes2 = encoding2.GetBytes(hashKey);
-			byte[] inArray = HashDataWithKeyImp((KeyedHashAlgorithmForAction)keyedHashAlgorithm, bytes, bytes2);
+			byte[] dataBytes = ReadFileBytes(fileVariant.FullName, encoding2);
+			byte[] bytes = encoding2.GetBytes(hashKey);
+			byte[] inArray = HashDataWithKeyImp((KeyedHashAlgorithmForAction)keyedHashAlgorithm, dataBytes, bytes);
 			if (hashedText != null)
 			{
 				hashedText = Convert.ToBase64String(inArray);
@@ -81,6 +60,18 @@ public static void HashFileWithKey(String fileToHash, ref String hashedText, int
 		{
 			Console.WriteLine(ex);
 		}
+	}
+
+	private static byte[] ReadFileBytes(string fileName, Encoding encoding)
+	{
+		byte[] bytes;
+		using (StreamReader streamReader = new StreamReader(File.OpenRead(fileName), encoding))
+		{
+			string s = streamReader.ReadToEnd();
+			bytes = encoding.GetBytes(s);
+		}
+
+		return bytes;
 	}
 
 	private static byte[] HashDataWithKeyImp(KeyedHashAlgorithmForAction keyedHashAlgorithmSafe, byte[] dataBytes, byte[] keyBytes)
