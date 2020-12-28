@@ -129,31 +129,32 @@ public class Program
 			int num = symmetricAlgorithm.KeySize / 8;
 			array = (useSalt ? GenerateBitsOfRandomEntropy(num) : new byte[num]);
 			byte[] bytes;
-			if (useSalt)
+		 
+		 	if (useSalt)
 			{
 				using (Rfc2898DeriveBytes rfc2898DeriveBytes = new Rfc2898DeriveBytes(key, array, 1000))
 				{
 					bytes = rfc2898DeriveBytes.GetBytes(num);
-					goto IL_B3;
 				}
 			}
+			else {
 
-			bytes = encoding.GetBytes(key);
-			if (bytes.Length < num)
-			{
-				int num2 = symmetricAlgorithm.LegalKeySizes[0].MinSize / 8;
-				if (encryptionAlgorithm != SymmetricAlgorithmForAction.TripleDES)
+				bytes = encoding.GetBytes(key);
+				if (bytes.Length < num)
 				{
-					Array.Resize<byte>(ref bytes, num);
-				}
-				else if (bytes.Length < num2)
-				{
-					Array.Resize<byte>(ref bytes, num2);
-				}
+					int num2 = symmetricAlgorithm.LegalKeySizes[0].MinSize / 8;
+					if (encryptionAlgorithm != SymmetricAlgorithmForAction.TripleDES)
+					{
+						Array.Resize<byte>(ref bytes, num);
+					}
+					else if (bytes.Length < num2)
+					{
+						Array.Resize<byte>(ref bytes, num2);
+					}
+				}				
 			}
 
-			IL_B3:
-				symmetricAlgorithm.Key = bytes;
+			symmetricAlgorithm.Key = bytes;
 			int num3 = symmetricAlgorithm.BlockSize / 8;
 			array2 = (useIv ? GenerateBitsOfRandomEntropy(num3) : new byte[num3]);
 			symmetricAlgorithm.IV = array2;
